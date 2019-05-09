@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Dynamic Schedule</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <!-- // <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script> -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.5.7/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <label class="form-control mt-3 mb-5 text-center"> Dynamic Schedule </label>
+            </div>
+        </div>
+        <div class="form-group row justify-content-md-center">
+            <div class=" row col-sm-4">
+                <label class="col-sm-4 form-control-label">Date Begin<span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <input type="text" required parsley-type="text" class="form-control" id="datebegin" placeholder="">
+                </div>
+            </div>
+            <div class=" row col-sm-4">
+                <label class="col-sm-4 form-control-label">Date End<span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <input type="text" required parsley-type="text" class="form-control" id="dateend" placeholder="">
+                </div>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+            <button type="button" id="btnlistaservicios" onclick="listaservicios();" class="btn btn-outline-secondary  btn-sm">New Schedule</button>
+            <button type="button" id="btnlistaservicios" onclick="listaservicios();" class="btn btn-outline-secondary  btn-sm">Import JSON</button>
+            <button type="button" id="btnlistaservicios" onclick="listaservicios();" class="btn btn-outline-secondary  btn-sm" disabled>Export JSON</button>
+            <button type="button" id="btnlistaservicios" onclick="listaservicios();" class="btn btn-outline-secondary  btn-sm">Example</button>
+            </div>
+        </div>
+        <div class="row clearfix">
+            <div class="col-md-12" >
+                <br>
+                <div class=" wrapper">
+                <table class="table table-sm table-bordered table-hover" id="myTable">
+                    <thead id="thead" class="thead-light"></thead>
+                    <tbody id="tbody"></tbody>
+                    <tfoot id="tfoot"></tfoot>
+                </table>
+                </div>
+            </div>
+        </div>
+        
+        <br>
+        <div class="row">
+            <div class="col">
+                <label class="form-control mb-2 text-center" style="background-color: white;"> AVAILABLE </label>
+            </div>
+            <div class="col">
+                <label class="form-control mb-2 text-center text-white" style="background-color: red;"> WORK </label>
+            </div>
+            <div class="col">
+                <label class="form-control mb-2 text-center text-white" style="background-color: green;"> DAY OFF </label>
+            </div>
+            <div class="col">
+                <label class="form-control mb-2 text-center text-white" style="background-color: orange;"> VACATION </label>
+            </div>
+            <div class="col">
+                <label class="form-control mb-2 text-center text-white" style="background-color: blue;"> HOLIDAY </label>
+            </div>
+        </div>
+        <hr>
+    </div>
+
+    <div class="container" id="app">
+            <table class="table table-hover table-striped table-sm">
+                <thead>
+                <tr>
+                    <th style="width: 20px;">No.</th>
+                    <th>Description</th>
+                    <th style="width: 80px;">Qty</th>
+                    <th style="width: 130px;" class="text-right">Price</th>
+                    <th style="width: 90px;">Tax</th>
+                    <th style="width: 130px;">Total</th>
+                    <th style="width: 130px;"></th>
+                </tr>
+                </thead>
+                
+                <tbody>
+                <tr v-for="(row, index) in rows" v-bind:key="row.index">
+                    <td>
+                        {{ index +1 }}
+                    </td>
+                    <td>
+                        <input class="form-control" v-model="row.description"/>
+                    </td>
+                    <td>
+                        <input class="form-control" v-model="row.qty" type="number"/>
+                    </td>
+                    <td>
+                        <input class="form-control text-right" v-model="row.price" type="number"/>
+                    </td>
+                    <td>
+                        <select class="form-control" v-model="row.tax">
+                            <option value="0">0%</option>
+                            <option value="6.5">6.50%</option>
+                            <option value="10">10%</option>
+                            <option value="20">20%</option>
+                            <option value="21">21%</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input class="form-control text-right"  v-model="row.subtotal | subtotal(row)" type="number" readonly />
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-xs" @click="addRow(index)">+</button>
+                        <button class="btn btn-danger btn-xs" @click="removeRow(index)">-</button>
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot>
+        
+                <!-- <tr>
+                    <td colspan="5" class="text-right">TAX</td>
+                    <td colspan="1" class="text-right">{{ taxtotal | currencyDisplay }}</td>
+                    <td></td>
+                </tr> -->
+                <tr>
+                    <td colspan="5" class="text-right">TOTAL</td>
+                    <td colspan="1" class="text-right">{{ total }}</td>
+                    <td></td>
+                </tr>
+                <!-- <tr>
+                    <td colspan="5" class="text-right">DELIVERY</td>
+                    <td colspan="1" class="text-right"><input class="form-control text-right" v-model="delivery | currencyDisplay" number/></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="5" class="text-right"><strong>GRANDTOTAL</strong></td>
+                    <td colspan="1" class="text-right"><strong>{{ grandtotal = total + delivery | currencyDisplay }}</strong></td>
+                    <td></td>
+                </tr> -->
+                </tfoot>
+            </table>
+            <button @click="getData()">SUBMIT DATA</button>
+            <pre>{{ $data }}</pre>
+        </div>
+
+<!-- <script src="dayjs.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.8.14/dayjs.min.js"></script>
+<!-- <script src="plugin/isBetween.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.8.14/plugin/isBetween.js"></script>
+<!-- <script src="moment.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js"></script> -->
+<script src="vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.5.7/dist/flatpickr.min.js"></script>
+<script src="app.js"></script>
+
+<script>
+flatpickr("#datebegin", { dateFormat: "Y-m-d", minDate: "today" });
+flatpickr("#dateend", { dateFormat: "Y-m-d", minDate: "today" });
+
+dayjs.extend(dayjs_plugin_isBetween);
+
+var data = [
+    {
+    "_id": "5002",
+    "adddate": "2019-04-12T03:00:00.000Z",
+    "phoneeu_id": "EUT85",
+    "phoneus_id": "YES",
+    "datebegin": "2019-04-12T03:00:00.000Z",
+    "dateend": "2019-04-15T03:00:00.000Z",
+    "status": "PENDING" },
+    {
+    "_id": "5006",
+    "adddate": "2019-04-12T03:00:00.000Z",
+    "phoneeu_id": "EUT85",
+    "phoneus_id": "YES",
+    "datebegin": "2019-04-16T03:00:00.000Z",
+    "dateend": "2019-04-18T03:00:00.000Z",
+    "status": "PENDING" },
+    {
+    "_id": "5003",
+    "adddate": "2019-04-12T03:00:00.000Z",
+    "phoneeu_id": "EUT70",
+    "phoneus_id": "YES",
+    "datebegin": "2019-04-12T03:00:00.000Z",
+    "dateend": "2019-04-15T03:00:00.000Z",
+    "status": "PENDING" },
+    {
+    "_id": "5004",
+    "adddate": "2019-04-12T03:00:00.000Z",
+    "phoneeu_id": "EU11",
+    "phoneus_id": "YES",
+    "datebegin": "2019-04-16T03:00:00.000Z",
+    "dateend": "2019-04-29T03:00:00.000Z",
+    "status": "PENDING" },
+    {
+    "_id": "5005",
+    "adddate": "2019-05-07T03:00:00.000Z",
+    "phoneeu_id": "EU20",
+    "phoneus_id": "YES",
+    "datebegin": "2019-05-09T03:00:00.000Z",
+    "dateend": "2019-05-13T03:00:00.000Z",
+    "status": "ACTIVATED" },
+    {
+    "_id": "5007",
+    "adddate": "2019-04-12T03:00:00.000Z",
+    "phoneeu_id": "EU11",
+    "phoneus_id": "YES",
+    "datebegin": "2019-04-29T03:00:00.000Z",
+    "dateend": "2019-04-30T03:00:00.000Z",
+    "status": "PENDING" },
+]
+
+
+
+
+
+generateSchedule(data,"2019/04/01","2019/05/31");
+
+
+function generateSchedule (data, dateBegin, dateEnd) {
+    // d3.js Grouping
+    var scheduleByPhone = d3.nest()
+      .key(function(d) { return d.phoneeu_id; })
+      .entries(data);
+    // console.log(scheduleByPhone);
+    // console.log(scheduleByPhone[0].values[0]);
+
+    var obj = scheduleByPhone;
+    var thead = document.getElementById('thead');
+    var th;
+    var foot;
+    var tbody = document.getElementById('tbody');
+    var tfoot = document.getElementById('tfoot');
+    var total = 0;
+    
+    // var datebegin = dayjs(dateBegin).format('YYYY-MM-DD');
+    var datebegin = moment(dateBegin);
+    var dateend = moment(dateEnd);
+    console.log("Begin: " + datebegin + " End: " + dateend);
+    var totaldays = dateend.diff(datebegin, 'day')+1;
+    console.log("Quantity of days: " + totaldays);
+    var datepass = datebegin;
+    // dayjs(rowBefore).add(1, 'day').format('YYYY-MM-DD');
+
+    // var a = moment(hastadia);
+    // var c = dateStr;
+    // var b = moment(c);
+    // var dice = a.diff(b, 'days')+1;
+    th ="<tr>";
+    th +="<th class='sticky-col first-col'>Employee</th>";
+    for (var i = 0; i < totaldays; i++){
+        th +="<th>" + dayjs(datepass).format('MMM/DD') + "</th>";
+        datepass = dayjs(datepass).add(1, 'day').format('YYYY-MM-DD');
+    }
+    th +="</tr>";
+    thead.innerHTML = th;
+
+    for (var i = 0; i < obj.length; i++) {
+        var tr = "<tr>";
+        var datepasst = datebegin;
+        tr += "<td class='sticky-col first-col' style='width: 15%'>" + obj[i].key + "</td>";
+        console.log(dayjs(obj[i].datebegin).format('YYYY-MM-DD') + " - " + dayjs(obj[i].dateend).format('YYYY-MM-DD'))
+        for (var a = 0; a < totaldays; a++){
+            var marca = false;
+            for (var b = 0; b < obj[i].values.length; b++){
+            // Object.keys(obj[i].values).forEach(function(key) {
+                // '[' indicates inclusion, '(' indicates exclusion
+                // console.log( "date : " + obj[i].datebegin + " result: " + dayjs(datepasst).isBetween(obj[i].datebegin, obj[i].dateend, null, '[)'));
+                console.log(dayjs(obj[i].values[b].datebegin).format('YYYY-MM-DD') + " - " + dayjs(obj[i].values[b].dateend).format('YYYY-MM-DD'))
+                if(dayjs(datepasst).isBetween(obj[i].values[b].datebegin, obj[i].values[b].dateend, null, '[(')) {
+                    // tr +="<td bgcolor='red'>" + "" + "</td>";
+                    marca = true
+                // } else {
+                //     // tr +="<td>" + dayjs(datepasst).format('DD') + "</td>";
+                //     // tr +="<td>" + "" + "</td>";
+
+                }
+            }
+            // });
+            if(marca) {
+                tr +="<td bgcolor='red'>" + "" + "</td>";
+            } else {
+                // tr +="<td>" + dayjs(datepasst).format('DD') + "</td>";
+                tr +="<td>" + "" + "</td>";
+            }
+            marca = false;
+            datepasst = dayjs(datepasst).add(1, 'day').format('YYYY-MM-DD');
+        }
+        
+        tr += "</tr>";
+
+        /* We add the table row to the table body */ 
+        
+        tbody.innerHTML += tr;
+        
+        // var tr ="<tr bgcolor='gray'>";
+        //     tr +="<td colspan='6'></td>";
+        //     tr +="</tr>";
+        //     tbody.innerHTML += tr;
+
+        // var tr ="<tr bgcolor='white'>";
+        //     tr +="<td colspan='6' style='height: 30px'></td>";
+        //     tr +="</tr>";
+        //     tbody.innerHTML += tr;
+    }
+
+    // foot = "<tr>";
+    // foot += "<td colspan='5' bgcolor='white'>";
+    // foot += "AVAILABLE";
+    // foot += "</td>";
+    // foot += "<td bgcolor='red'>";
+    // foot += "IN USE";
+    // foot += "</td>";
+    // foot += "</tr>";
+
+    // tfoot.innerHTML = foot;
+}
+
+
+
+
+</script>
+
+
+
+
+
+</body>
+</html>
