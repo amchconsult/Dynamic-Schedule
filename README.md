@@ -1,2 +1,2 @@
-# Dynamic-Schedule
-Easy employees work schedule
+# Dynamic-Schedule DEMO
+Easy employees timesheet schedule demo.
