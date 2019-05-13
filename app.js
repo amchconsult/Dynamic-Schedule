@@ -31,7 +31,7 @@ var vm = new Vue({
                 this.generateSchedule(this.rows, this.datefrom, this.dateto);
             } 
         }
-    }
+    },
     methods: {
         
         generateSchedule: function (data, dateBegin, dateEnd) {
